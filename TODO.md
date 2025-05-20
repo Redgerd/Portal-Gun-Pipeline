@@ -3,9 +3,12 @@
 ## Project Setup
 
 - [x] Add `docker-compose.yml` for:
-  - Apache Airflow (webserver, scheduler)
-  - MinIO (local object storage)
-- [ ] Folders:
+  - Apache Airflow
+  - MinIO
+  - Duck DB
+- [x] Make `Docker` file:
+
+- [x] Folders:
   - `dags/`
   - `plugins/`
   - `logs/`
