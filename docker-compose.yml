@@ -1,0 +1,30 @@
+version: "3.8"
+
+services:
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001" # MinIO Console UI port (optional)
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-data:/data
+    restart: unless-stopped
+
+  duckdb:
+    image: duckdb/duckdb:latest
+    container_name: duckdb
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./duckdb_data:/duckdb_data
+    working_dir: /duckdb_data
+    command: ["duckdb", "mydb.duckdb"] # Opens or creates this DB file
+    restart: unless-stopped
+
+volumes:
+  minio-data:

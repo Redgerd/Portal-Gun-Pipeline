@@ -1,0 +1,6 @@
+apache-airflow
+requests
+boto3
+duckdb
+dbt-core
+great_expectations
