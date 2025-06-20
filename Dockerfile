@@ -2,7 +2,7 @@ FROM apache/airflow:2.7.1-python3.9
 
 USER root
 
-# Install system dependencies needed for duckdb, minio CLI, or others (if any)
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     curl unzip \
     && apt-get clean \
@@ -10,13 +10,13 @@ RUN apt-get update && apt-get install -y \
 
 USER airflow
 
-# Copy only requirements.txt first to leverage Docker cache
+# Copy requirements first for cache optimization
 COPY requirements.txt .
 
-# Install Python dependencies including duckdb (add duckdb in your requirements.txt)
+# Install Python packages including duckdb, dbt, GE, etc.
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy dags, plugins, and other project folders into image
+# Copy project folders
 COPY dags/ /opt/airflow/dags/
 COPY plugins/ /opt/airflow/plugins/
 COPY dbt_project/ /opt/airflow/dbt_project/
