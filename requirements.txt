@@ -1,4 +1,3 @@
-apache-airflow
 requests
 boto3
 duckdb
