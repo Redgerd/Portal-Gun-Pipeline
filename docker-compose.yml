@@ -117,19 +117,6 @@ services:
     networks:
       - airflow-net
 
-  duckdb:
-    image: duckdb/duckdb:latest
-    container_name: duckdb
-    stdin_open: true
-    tty: true
-    volumes:
-      - ./duckdb_data:/duckdb_data
-    working_dir: /duckdb_data
-    command: ["duckdb", "mydb.duckdb"]
-    restart: unless-stopped
-    networks:
-      - airflow-net
-
 volumes:
   postgres-db-volume:
   minio-data:
