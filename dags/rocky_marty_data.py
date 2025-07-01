@@ -1,10 +1,10 @@
 from airflow import DAG
 from airflow.operators.python import PythonOperator
+from airflow.utils.timezone import utcnow  # ✅ Airflow-safe current time
 from datetime import datetime, timedelta
 import requests
 import boto3
 import json
-import os
 
 # Configs
 MINIO_ENDPOINT = "minio:9000"
@@ -23,12 +23,11 @@ dag = DAG(
     dag_id='extract_rick_and_morty',
     default_args=default_args,
     description='Extract data from Rick and Morty API and store raw JSON in MinIO',
-    schedule_interval=None  # Manual runs only
-    start_date=datetime(2023, 1, 1),
+    schedule=None,  # ✅ Correct for manual runs
+    start_date=datetime(2025, 1, 1),
     catchup=False,
     tags=["rick_and_morty"],
 )
-
 
 def ensure_bucket():
     s3 = boto3.client(
@@ -40,7 +39,6 @@ def ensure_bucket():
     buckets = [b["Name"] for b in s3.list_buckets().get("Buckets", [])]
     if BUCKET_NAME not in buckets:
         s3.create_bucket(Bucket=BUCKET_NAME)
-
 
 def fetch_and_store_data(endpoint_label: str, endpoint_path: str, **context):
     s3 = boto3.client(
@@ -64,11 +62,9 @@ def fetch_and_store_data(endpoint_label: str, endpoint_path: str, **context):
             break
         page += 1
 
-    # Logging the number of records
     print(f"Fetched {len(all_data)} records from {endpoint_label}")
 
-    # Timestamped filename
-    timestamp = datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
+    timestamp = utcnow().strftime("%Y-%m-%dT%H-%M-%S")  # ✅ Safe timestamp
     key = f"raw/{endpoint_label}_{timestamp}.json"
 
     s3.put_object(
@@ -78,7 +74,6 @@ def fetch_and_store_data(endpoint_label: str, endpoint_path: str, **context):
         ContentType="application/json",
     )
     print(f"Stored data to MinIO at key: {key}")
-
 
 with dag:
     ensure_bucket_task = PythonOperator(
@@ -112,3 +107,6 @@ with dag:
             'endpoint_path': 'episode'
         },
     )
+
+    # Optional: run all in sequence
+    ensure_bucket_task >> [extract_characters, extract_locations, extract_episodes]

@@ -1,4 +1,4 @@
-FROM apache/airflow:2.7.1-python3.9
+FROM apache/airflow:3.0.2-python3.9
 
 USER root
 
@@ -10,14 +10,18 @@ RUN apt-get update && apt-get install -y \
 
 USER airflow
 
-# Copy requirements first for cache optimization
+# Copy requirements first
 COPY requirements.txt .
 
-# Install Python packages including duckdb, dbt, GE, etc.
+# Install Python packages
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy project folders
+# Copy project files
+
+# Airflow
 COPY dags/ /opt/airflow/dags/
 COPY plugins/ /opt/airflow/plugins/
+COPY config/ /opt/airflow/config/
+
 COPY dbt_project/ /opt/airflow/dbt_project/
 COPY great_expectations/ /opt/airflow/great_expectations/

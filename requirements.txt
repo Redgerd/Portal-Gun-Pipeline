@@ -1,5 +1,5 @@
 requests
 boto3
-duckdb
 dbt-core
 great_expectations
+apache-airflow-providers-fab
