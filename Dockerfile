@@ -1,27 +1,12 @@
-FROM apache/airflow:3.0.2-python3.9
-
+FROM apache/airflow:2.10.5
+WORKDIR /opt/airflow
 USER root
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    curl unzip \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
+RUN apt update
+COPY requirements.txt /opt/airflow/requirements.txt
 USER airflow
-
-# Copy requirements first
-COPY requirements.txt .
-
-# Install Python packages
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy project files
-
-# Airflow
-COPY dags/ /opt/airflow/dags/
-COPY plugins/ /opt/airflow/plugins/
-COPY config/ /opt/airflow/config/
-
-COPY dbt_project/ /opt/airflow/dbt_project/
-COPY great_expectations/ /opt/airflow/great_expectations/
+RUN pip install --upgrade pip \
+	&& pip install --no-cache-dir astronomer-cosmos==1.9.2
+RUN python -m venv dbt_venv \
+	&& source dbt_venv/bin/activate \
+	&& pip install --upgrade pip \
+	&& pip install --no-cache-dir -r /opt/airflow/requirements.txt

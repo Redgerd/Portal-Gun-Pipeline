@@ -1,2 +1,17 @@
-README.md
+# Airflow
 logs/
+airflow.db
+airflow.cfg
+
+# DBT
+dbt_packages/
+target/
+
+# Great Expectations
+great_expectations/uncommitted/
+
+# Docker / Env
+.env
+minio_data/
+
+plugins/

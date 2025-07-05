@@ -1,15 +1,16 @@
 ﻿# Rick & Morty Portal Gun Pipeline
- 
+
 This project builds a local data engineering pipeline that extracts data from the Rick & Morty public API, stores raw data locally, transforms it into structured tables, and validates data quality — all orchestrated using Apache Airflow.
 
 ## Project Overview
 
 - Extract character, location, and episode data from the Rick & Morty REST API
 - Store raw JSON files in a local S3-compatible MinIO bucket (Bronze layer)
-- Use DuckDB as a local analytical database to transform raw data into cleaned Silver and Gold tables
+- Use PostgreSQL as the central database to transform data into cleaned Silver and Gold tables
+- Perform transformations using dbt (Data Build Tool)
 - Validate data quality using Great Expectations
-- Orchestrate the entire workflow with Apache Airflow running daily
-- Query and analyze data locally with DuckDB CLI or Jupyter notebooks
+- Orchestrate the entire pipeline with Apache Airflow (scheduled daily)
+- Analyze data directly from PostgreSQL using any SQL client
 
 ## Architecture Diagram
 
@@ -17,14 +18,14 @@ This project builds a local data engineering pipeline that extracts data from th
 
 ## Technologies Used
 
-| Tool               | Purpose                                                   |
-|--------------------|-----------------------------------------------------------|
-| **Airflow**        | Orchestration of the ETL pipeline                         |
-| **MinIO**          | S3-compatible object storage for raw data                 |
-| **DuckDB**         | Local columnar database for transformations               |
-| **dbt**            | SQL-based transformation and modeling                     |
-| **Great Expectations** | Data quality testing and validation                     |
-| **Docker Compose** | Containerized local environment                           |
+| Tool                   | Purpose                                                  |
+| ---------------------- | -------------------------------------------------------- |
+| **Airflow**            | Orchestrate and schedule pipeline tasks                  |
+| **MinIO**              | S3-compatible object storage for raw data (Bronze layer) |
+| **PostgreSQL**         | Central database for transformation and analysis         |
+| **dbt**                | SQL-based transformations and data modeling              |
+| **Great Expectations** | Data quality testing and validation                      |
+| **Docker Compose**     | Manage services in a local containerized environment     |
 
 ## Project Structure
 
@@ -60,30 +61,30 @@ This project builds a local data engineering pipeline that extracts data from th
   s3://rickandmorty/raw/episode.json
   ```
 
-### Step 2: Transformation (dbt + DuckDB)
+## Step 2: Transformation (dbt + PostgreSQL)
 
-- dbt models transform raw JSON into clean staging tables:
-  - `stg_character.sql`, `stg_location.sql`, etc.
-- Then they build marts like:
-  - `dim_character.sql`, `fact_episode_appearance.sql`
-- DuckDB is used as the target database (`.duckdb` file persisted locally).
+- dbt models transform the raw JSON (after loading into Postgres) into clean staging tables:
+- `stg_character.sql`, `stg_location.sql`, etc.
+- Then dbt builds data marts like:
+- `dim_character.sql`, `fact_episode_appearance.sql`
+- PostgreSQL acts as the central database for querying and modeling.
 
-### Step 3: Validation (Great Expectations)
+## Step 3: Validation (Great Expectations)
 
-- GE suites validate:
-  - Nulls, accepted values, uniqueness, format correctness
+- Great Expectations suites validate:
+- Nulls, accepted values, uniqueness, formatting
 - A DAG task runs `great_expectations checkpoint run`
-- DAG fails if validations fail
+- The DAG will fail if expectations fail
 
 ---
 
 ## Docker Services (`docker-compose.yml`)
 
 - **Airflow Webserver** → http://localhost:8080
-- **MinIO Console** → http://localhost:9001 (admin/admin)
 - **Airflow Scheduler**
-- **DuckDB CLI** (mounted for interaction)
-- **airflow-init** → Bootstraps DB, user, folders
+- **MinIO Console** → http://localhost:9001 (admin/admin)
+- **PostgreSQL** → Database for transformations
+- **airflow-init** → Bootstraps Airflow, dbt, and folder setup
 
 ---
 
@@ -91,16 +92,16 @@ This project builds a local data engineering pipeline that extracts data from th
 
 ```bash
 # 1. Clone the repo
-git clone <your-repo-url>
+git clone https://github.com/Redgerd/Portal-Gun-Pipeline
 cd portal-gun-pipeline
 
 # 2. Build containers
 docker compose build
 
-# 3. Initialize Airflow
+# 3. Initialize Airflow and DBT
 docker compose up airflow-init
 
-# 4. Run the stack
+# 4. Launch the full stack
 docker compose up
 ```
 
@@ -118,7 +119,8 @@ AIRFLOW_UID=50000
 _PIP_ADDITIONAL_REQUIREMENTS=""
 _AIRFLOW_WWW_USER_USERNAME=airflow
 _AIRFLOW_WWW_USER_PASSWORD=airflow
+MINIO_ROOT_USER=minioadmin
+MINIO_ROOT_PASSWORD=minioadmin123
 ```
 
 ---
-
