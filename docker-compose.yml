@@ -77,7 +77,7 @@ x-airflow-common: &airflow-common
     # If you want to use it, outcomment it and replace airflow.cfg with the name of your config file
     # AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
     # === Override DBT Profile path
-    DBT_PROFILES_DIR: /opt/airflow/.dbt
+    DBT_PROFILES_DIR: /opt/airflow/dbt_profile
     # >>> End
     # === Disable worker log when use LocalExecutor
     AIRFLOW__LOGGING__ENABLE_WORKER_LOG_SERVER: "false"
@@ -93,7 +93,7 @@ x-airflow-common: &airflow-common
     - ${AIRFLOW_PROJ_DIR}/plugins:/opt/airflow/plugins
     # === Add dbt project directory and profile
     - ${AIRFLOW_PROJ_DIR}/dbt:/opt/airflow/dbt
-    - .dbt:/opt/airflow/.dbt
+    - ${AIRFLOW_PROJ_DIR}/dbt_profile:/opt/airflow/dbt_profile
     # >>> End
   user: "${AIRFLOW_UID:-50000}:0"
   # >>> End
@@ -263,7 +263,7 @@ services:
           echo
         fi
         mkdir -p /sources/logs /sources/dags /sources/plugins /sources/dbt
-        chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,plugins,dbt} /opt/airflow/.dbt
+        chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,plugins,dbt,dbt_profile}
         exec /entrypoint airflow version
     # add mkdir /sources/dbt
     # add chown /sources/dbt and /opt/airflow/.dbt
