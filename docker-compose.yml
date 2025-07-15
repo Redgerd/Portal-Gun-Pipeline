@@ -49,9 +49,9 @@ x-airflow-common: &airflow-common
   # Comment the image line, place your Dockerfile in the directory where you placed the docker-compose.yaml
   # and uncomment the "build" line below, Then run `docker-compose build` to build the images.
   # === Edited to get extended airflow image name from .env
-  image: ${AIRFLOW_IMAGE_NAME}
+  # image: ${AIRFLOW_IMAGE_NAME}
   # >>> End
-  # build: .
+  build: .
   environment: &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: LocalExecutor # Change to LocalExecutor
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
